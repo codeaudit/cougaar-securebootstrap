@@ -42,58 +42,41 @@ grant codeBase "file:${java.home}${/}lib${/}ext${/}*" {
 	permission java.security.AllPermission;
 };
 
-// SUN JCE cryptographic framework
-grant codeBase "file:${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar" {
-	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
-	// documentation for a description of the following permissions.
-	permission java.security.AllPermission;
-};
-
-// SUN JCE cryptographic providers
-// All crypto providers should have these permissions.
-// Crypto providers are listed in the cryptoprovider.conf file
-// (under the configs/common directory).
-// Currently, the following providers are installed:
-//    security.provider.1=com.sun.crypto.provider.SunJCE
-//    security.provider.2=com.sun.net.ssl.internal.ssl.Provider
-//    security.provider.3=cryptix.jce.provider.CryptixCrypto
-//    security.provider.4=com.ibm.crypto.provider.IBMJCE
-
-grant codeBase "file:${org.cougaar.install.path}${/}sys${/}sunjce_provider.jar" {
-	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
-	// documentation for a description of the following permissions.
-	//permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
-	permission java.lang.RuntimePermission "getProtectionDomain";
-	permission java.security.SecurityPermission "putProviderProperty.SunJCE";
-};
-
-grant codeBase "file:${org.cougaar.install.path}${/}sys${/}IBMJCEProvider.jar" {
-	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
-	// documentation for a description of the following permissions.
-	//permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
-	permission java.lang.RuntimePermission "getProtectionDomain";
-	permission java.security.SecurityPermission "putProviderProperty.SunJCE";
-};
+// Crypto providers are listed in the cryptoprovider.conf file under the configs/security directory.
 
 grant codeBase "file:${org.cougaar.install.path}${/}sys${/}bcprov-jdk14-122.jar" {
 	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
 	// documentation for a description of the following permissions.
-	//permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
 	permission java.lang.RuntimePermission "getProtectionDomain";
 	permission java.security.SecurityPermission "putProviderProperty.BC";
-};
-
-grant codeBase "file:${org.cougaar.install.path}${/}sys${/}jsse.jar" {
-	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
-	// documentation for a description of the following permissions.
-	//permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
-	permission java.lang.RuntimePermission "getProtectionDomain";
-	permission java.security.SecurityPermission "putProviderProperty.SunJCE";
 };
 
 // FIX: do we want to grant all permissions to all the JAR files in the sys path?
 grant codeBase "file:${org.cougaar.install.path}${/}sys${/}*" {
 	permission java.security.AllPermission;
+};
+
+////////////////////////////////////////////////////////////
+// Permissions for bootstrapper package.
+//grant codeBase "file:${org.cougaar.install.path}${/}lib${/}bootstrapper.jar" {
+grant signedBy "bootstrapper" { 
+	// AllPermission grants all permissions in the JDK 1.3,
+	// but not the JAAS permissions. Therefore, JAAS permissions
+	// must be set additionally.
+	permission java.security.AllPermission;
+
+	permission javax.security.auth.AuthPermission "getSubject";
+	permission javax.security.auth.AuthPermission "modifyPrincipals";
+	permission javax.security.auth.AuthPermission "doAs";
+	permission javax.security.auth.AuthPermission "getSubjectFromDomainCombiner";
+	permission javax.security.auth.AuthPermission "setReadOnly";
+	permission javax.security.auth.AuthPermission "getPolicy";
+
+	// Note that the boostrapper only can write to the bootstrap subdirectory.
+	//permission java.io.FilePermission "${org.cougaar.install.path}${/}log${/}bootstrap${/}-", "read";
+	//permission java.io.FilePermission "${org.cougaar.install.path}${/}log${/}bootstrap${/}", "read";
+	permission org.cougaar.core.security.crypto.KeyRingPermission "installPkcs7Reply";
+	permission org.cougaar.core.security.crypto.KeyRingPermission "readPrivateKey";
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}Commons_isat_plugins.jar" {
@@ -110,22 +93,6 @@ grant codeBase "file:${org.cougaar.install.path}${/}lib${/}webserver.jar" signed
         permission java.lang.RuntimePermission "getClassLoader";
         permission java.lang.RuntimePermission "createClassLoader";
         permission java.util.PropertyPermission "java.protocol.handler.pkgs", "read,write";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.SecurityPropertiesService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.ConfigParserService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.KeyRingService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.LdapUserService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertificateManagementService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.identity.AgentIdentityService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertValidityService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CryptoPolicyService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.EncryptionService";
-};
-
-grant codeBase "file:${org.cougaar.install.path}${/}sys${/}servlet.jar" signedBy "privileged"  {
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.EncryptionService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.identity.AgentIdentityService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertValidityService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CryptoPolicyService";
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}webtomcat.jar" signedBy "privileged" {
@@ -134,25 +101,13 @@ grant codeBase "file:${org.cougaar.install.path}${/}lib${/}webtomcat.jar" signed
         permission java.lang.RuntimePermission "createClassLoader";
         permission java.util.logging.LoggingPermission "control";
         permission java.util.PropertyPermission "java.protocol.handler.pkgs", "read,write";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.LdapUserService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.SecurityPropertiesService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.ConfigParserService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertificateManagementService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.KeyRingService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.identity.AgentIdentityService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertValidityService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CryptoPolicyService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.EncryptionService";
 };
+
 grant codeBase "file:${org.cougaar.install.path}${/}sys${/}tomcat_40.jar" signedBy "privileged"  {
         permission java.security.SecurityPermission "getPolicy";
         permission java.lang.RuntimePermission "getClassLoader";
         permission java.lang.RuntimePermission "createClassLoader";
         permission java.util.PropertyPermission "java.protocol.handler.pkgs", "read,write";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.identity.AgentIdentityService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.EncryptionService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CryptoPolicyService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertValidityService";
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}core.jar" signedBy "privileged" {
@@ -164,23 +119,14 @@ grant codeBase "file:${org.cougaar.install.path}${/}lib${/}core.jar" signedBy "p
         permission java.lang.RuntimePermission "createClassLoader";
         permission java.util.PropertyPermission "java.protocol.handler.pkgs", "read,write";
 	permission java.util.PropertyPermission "*", "read, write";
+
+ 	permission org.cougaar.core.security.provider.SecurityServicePermission "*";
+
+        // FIX: why is this needed?
         permission org.cougaar.core.security.crypto.KeyRingPermission "KeyRingSSLFactory.getDefault";
         permission org.cougaar.core.security.crypto.KeyRingPermission "KeyRingSSLServerFactory.getDefault";
         permission org.cougaar.core.security.crypto.KeyRingPermission "getKeyStore";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.SecurityPropertiesService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.PolicyBootstrapperService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.identity.AgentIdentityService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.ConfigParserService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.SSLService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.KeyRingService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.EncryptionService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertValidityService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CryptoPolicyService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.DataProtectionService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.MessageProtectionService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.identity.WebserverIdentityService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertificateManagementService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.LdapUserService";
+
 	permission org.cougaar.core.security.access.AccessPermission "org.cougaar.core.service.MessageTransportService";
 };
 
@@ -196,28 +142,12 @@ grant codeBase "file:${org.cougaar.install.path}${/}lib${/}util.jar" signedBy "p
         permission java.security.SecurityPermission "getPolicy";
         permission java.lang.RuntimePermission "getClassLoader";
 	permission java.lang.RuntimePermission "createClassLoader";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.SecurityPropertiesService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.PolicyBootstrapperService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.ConfigParserService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.identity.AgentIdentityService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.SSLService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.KeyRingService";
-        permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.MessageProtectionService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.EncryptionService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertValidityService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CryptoPolicyService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.DataProtectionService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.identity.WebserverIdentityService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.CertificateManagementService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.crypto.LdapUserService";
 	permission org.cougaar.core.security.access.AccessPermission "org.cougaar.core.service.MessageTransportService";
+        // FIX: why is this needed?
         permission org.cougaar.core.security.crypto.KeyRingPermission "getKeyStore";
-};
 
-grant codeBase "file:${org.cougaar.install.path}${/}lib${/}safe.jar" signedBy "privileged" {
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.SecurityPropertiesService";	
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.PolicyBootstrapperService";
-	permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.ConfigParserService";
+	permission java.util.PropertyPermission "*", "read, write";
+ 	permission org.cougaar.core.security.provider.SecurityServicePermission "*";
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}sys${/}quoSumo.jar" signedBy "privileged" {
@@ -252,168 +182,64 @@ grant signedBy "securitymodule"  {
  	permission org.cougaar.core.security.provider.SecurityServicePermission "*";
 	permission org.cougaar.core.security.access.AccessPermission "org.cougaar.core.service.MessageTransportService";
 
-	permission java.io.FilePermission "${/}usr${/}java${/}*", "read";
-	permission java.io.FilePermission "${/}usr${/}java${/}-", "read";
-	permission java.io.FilePermission "${/}usr${/}java${/}", "read";
+	permission java.io.FilePermission "${java.home}${/}*", "read";
+	permission java.io.FilePermission "${java.home}${/}-", "read";
+	permission java.io.FilePermission "${java.home}${/}", "read";
         permission java.lang.RuntimePermission "accessClassInPackage.sun.tools.javac";
         permission java.lang.RuntimePermission "accessClassInPackage.sun.net.www.protocol.http";
+
+	permission java.util.PropertyPermission "*", "read, write";
 };
 
-////////////////////////////////////////////////////////////
-// Permissions for bootstrapper package.
-//grant codeBase "file:${org.cougaar.install.path}${/}lib${/}bootstrapper.jar" {
-grant signedBy "bootstrapper" { 
-	// AllPermission grants all permissions in the JDK 1.3,
-	// but not the JAAS permissions. Therefore, JAAS permissions
-	// must be set additionally.
-	permission java.security.AllPermission;
+grant codeBase "file:${org.cougaar.install.path}${/}lib${/}safe.jar" signedBy "privileged" {
+  permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.PolicyBootstrapperService";
+  permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.ConfigParserService";
+};
 
-	permission javax.security.auth.AuthPermission "getSubject";
-	permission javax.security.auth.AuthPermission "modifyPrincipals";
-	permission javax.security.auth.AuthPermission "doAs";
-	permission javax.security.auth.AuthPermission "getSubjectFromDomainCombiner";
-	permission javax.security.auth.AuthPermission "setReadOnly";
-	permission javax.security.auth.AuthPermission "getPolicy";
-
-	// Note that the boostrapper only can write to the bootstrap subdirectory.
-	//permission java.io.FilePermission "${org.cougaar.install.path}${/}log${/}bootstrap${/}-", "read";
-	//permission java.io.FilePermission "${org.cougaar.install.path}${/}log${/}bootstrap${/}", "read";
-	permission org.cougaar.core.security.crypto.KeyRingPermission "installPkcs7Reply";
-	permission org.cougaar.core.security.crypto.KeyRingPermission "readPrivateKey";
+grant codeBase "file:${org.cougaar.install.path}${/}lib${/}mtsstd.jar" signedBy "privileged" {
+  // The MTS needs the message protection service to protect messages.
+  permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.MessageProtectionService";
 };
 
 ////////////////////////////////////////////////////////////
 // Permissions for core infrastructure package.
 grant signedBy "privileged" {
- 	permission org.cougaar.core.security.provider.SecurityServicePermission "*";	
-	permission org.cougaar.core.security.access.AccessPermission "org.cougaar.core.service.MessageTransportService";
-	// Temporary until BUG 1264 is fixed:
-	permission java.util.PropertyPermission "*", "read,write";
+        // FIX: after bootstrapper patch has been applied
+	permission java.util.PropertyPermission "*", "read, write";
 
-        permission java.lang.RuntimePermission "accessClassInPackage.sun.rmi.server";
-        permission java.lang.RuntimePermission "accessClassInPackage.sun.rmi.transport";
-        permission java.lang.RuntimePermission "accessClassInPackage.sun.io";
-        permission java.lang.RuntimePermission "accessClassInPackage.sun.util.calendar";
-        //permission java.lang.RuntimePermission "getClassLoader";
-	//permission java.lang.RuntimePermission "createClassLoader";
+        // FIX: why is this needed?
+	permission org.cougaar.core.security.access.AccessPermission "org.cougaar.core.service.MessageTransportService";
+
+	// FIX: Temporary until BUG 1264 is fixed:
+	// permission java.util.PropertyPermission "*", "read,write";
 
 	////////////////////////////////////////////////////
 	// "standard" properies that can be read by anyone
-	permission java.util.PropertyPermission "java.version", "read";
-	permission java.util.PropertyPermission "java.vendor", "read";
-	permission java.util.PropertyPermission "java.vendor.url", "read";
-	permission java.util.PropertyPermission "java.class.version", "read";
-	permission java.util.PropertyPermission "os.name", "read";
-	permission java.util.PropertyPermission "os.version", "read";
-	permission java.util.PropertyPermission "os.arch", "read";
-	permission java.util.PropertyPermission "file.separator", "read";
-	permission java.util.PropertyPermission "path.separator", "read";
-	permission java.util.PropertyPermission "line.separator", "read";
-
-	permission java.util.PropertyPermission "http.strictPostRedirect", "read";
-
-	permission java.util.PropertyPermission "org.xml.sax.driver", "read";
-
-	permission java.util.PropertyPermission "java.specification.version", "read";
-	permission java.util.PropertyPermission "java.specification.vendor", "read";
-	permission java.util.PropertyPermission "java.specification.name", "read";
-
-	permission java.util.PropertyPermission "java.vm.specification.version", "read";
-	permission java.util.PropertyPermission "java.vm.specification.vendor", "read";
-	permission java.util.PropertyPermission "java.vm.specification.name", "read";
-	permission java.util.PropertyPermission "java.vm.version", "read";
-	permission java.util.PropertyPermission "java.vm.vendor", "read";
-	permission java.util.PropertyPermission "java.vm.name", "read";
-
-
-	/////////////////////////////////////////////////
-	// The permissions below should only be granted to the core
-	// infrastructure package.
-
-	// Node.java also requests this permission
-	permission java.util.PropertyPermission "java.vm.info", "read";
-	// Swing properties
-	permission java.util.PropertyPermission "swing.*", "read";
-	permission java.util.PropertyPermission "javax.*", "read";
-	// FIX: thes properties should be renamed to org.cougaar...
-	permission java.util.PropertyPermission "UTILLdmXMLPlugin.*", "read";
-	permission java.util.PropertyPermission "alpine.*", "read";
-	permission java.util.PropertyPermission "glm_debug_messages", "read";
-	permission java.util.PropertyPermission "glm_output_stream", "read";
-	permission java.util.PropertyPermission "glm_log_file", "read";
-	permission java.util.PropertyPermission "SAFE.debug", "read";
-	permission java.util.PropertyPermission "name", "read";
-	// for Cougaar > 8.6.1
-	permission java.util.PropertyPermission "jaxp.debug", "read";
-	permission java.util.PropertyPermission "driver.postgresql", "read";
-
-	permission java.util.PropertyPermission "java.library.path", "read";
-
-	permission java.util.PropertyPermission "generic.database.expander.*", "read";
-
-	// ICIS database
-	permission java.util.PropertyPermission "icis.database", "read";
-	permission java.util.PropertyPermission "icis.database.user", "read";
-	permission java.util.PropertyPermission "icis.database.password", "read";
-
-	// BlackJack permissions
-	permission java.util.PropertyPermission "blackjack_debug_messages", "read";
-	permission java.util.PropertyPermission "blackjack_output_stream", "read";
-	permission java.util.PropertyPermission "blackjack_log_file", "read";
-        permission java.util.PropertyPermission "blackjack.database", "read";
-        permission java.util.PropertyPermission "blackjack.database.user", "read";
-        permission java.util.PropertyPermission "blackjack.database.password", "read";
-
-	// OPLAN permissions
-	permission java.util.PropertyPermission "oplan.test.database", "read";
-	permission java.util.PropertyPermission "oplan.test.database.user", "read";
-	permission java.util.PropertyPermission "oplan.test.database.password", "read";
-
-	// Vishnu permissions
-	permission java.util.PropertyPermission "UTILPluginAdapter.showParameters", "read";
-	permission java.util.PropertyPermission "GroundVishnuPlugin.MAX_DISTANCE", "read";
-	permission java.util.PropertyPermission "TranscomVishnuPlugin.*", "read";
-	permission java.util.PropertyPermission "TranscomDataXMLize.*", "read";
-	permission java.util.PropertyPermission "TRANSCOM.*", "read";
-	permission java.util.PropertyPermission "GenericDataXMLize.*", "read";
-	permission java.util.PropertyPermission "vishnu.*", "read";
-	permission java.util.PropertyPermission "glmtrans.plugins.GroundVishnuPlugin.complainAboutMissingMovabilityPG", "read"; 
-
-	// MYSQL driver
-	permission java.util.PropertyPermission "driver.mysql", "read";
+	permission java.util.PropertyPermission "*", "read";
 
 	// Tomcat web server permissions
+        // FIX: why is this needed by everybody?
 	permission java.util.PropertyPermission "tomcat.*", "read, write";
-	permission java.util.PropertyPermission "tc_path_add", "read";
-
-	// CSMART permissions (csmart.jar)
-	permission java.util.PropertyPermission "csmart.log.severity", "read";
-	permission java.util.PropertyPermission "csmart.log.location", "read";
-
-	permission java.util.PropertyPermission "com.nai.*", "read";
-	permission java.util.PropertyPermission "sun.*", "read";
-
-	// FIX: Required for KAoS. That property should really be renamed to org.cougaar....
-	// permission java.util.PropertyPermission "domainName", "read";
-
-	///////////////////////////////////////////////////
-	// "Cougaar" properies that can be read
-	permission java.util.PropertyPermission "org.cougaar.*", "read";
 
 	///////////////////////////////////////////////////
 	// Package access permissions
+	permission java.lang.RuntimePermission "accessClassInPackage.sun.beans.infos";
+        permission java.lang.RuntimePermission "accessClassInPackage.sun.io";
+	permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
+	permission java.lang.RuntimePermission "accessClassInPackage.sun.net";
+        permission java.lang.RuntimePermission "accessClassInPackage.sun.rmi.server";
+        permission java.lang.RuntimePermission "accessClassInPackage.sun.rmi.transport";
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.security.x509";
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.security.pkcs";
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.security.util";
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.security.provider";
-	permission java.lang.RuntimePermission "accessClassInPackage.sun.net";
-	permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
-	permission java.lang.RuntimePermission "accessClassInPackage.sun.beans.infos";
+        permission java.lang.RuntimePermission "accessClassInPackage.sun.util.calendar";
 
 
 	///////////////////////////////////////////////////
 	// This permission is needed by the AgentManager to associate a JAAS
 	// subject with an agent when it starts an agent.
+        // FIX: why is this needed by everybody?
 	permission javax.security.auth.AuthPermission "modifyPrincipals";
 	permission javax.security.auth.AuthPermission "doAs";
 
@@ -430,24 +256,9 @@ grant signedBy "privileged" {
 	permission java.net.SocketPermission "*:1-", "connect,resolve";
 	permission java.net.SocketPermission "[*]:1-", "connect,resolve";
 
-	/////////////////////////////////////////////////
-	// System properties that are not granted by the default Java policy
-	// FIX: Does Cougaar really need this?
-	permission java.util.PropertyPermission "java.home", "read";
-	permission java.util.PropertyPermission "java.specification.version", "read";
-	permission java.util.PropertyPermission "java.specification.vendor", "read";
-	permission java.util.PropertyPermission "java.specification.name", "read";
-	permission java.util.PropertyPermission "java.class.path", "read";
-	permission java.util.PropertyPermission "java.ext.dirs", "read";
-	permission java.util.PropertyPermission "os.name", "read";
-	permission java.util.PropertyPermission "os.arch", "read";
-	permission java.util.PropertyPermission "os.version", "read";
-	permission java.util.PropertyPermission "user.name", "read";
-	permission java.util.PropertyPermission "user.home", "read";
-	permission java.util.PropertyPermission "user.dir", "read";
-
 	////////////////////////////////////////////////////
 	// These properties are set in Node.java
+        // FIX
 	permission java.util.PropertyPermission "org.cougaar.core.society.Node.name", "read, write";
 	permission java.util.PropertyPermission "org.cougaar.node.name", "read, write";
 	permission java.util.PropertyPermission "org.cougaar.config", "read, write";
@@ -456,16 +267,11 @@ grant signedBy "privileged" {
 	permission java.util.PropertyPermission "org.cougaar.name.server.port", "read, write";
 
 	////////////////////////////////////////////////////
-	// The following permission is enabled because system properties are
-	// read at Node.java:79, but Node.java should really be fixed.
-	// FIX - CRITICAL: Cougaar does not need write access to system properties
-	// permission java.util.PropertyPermission "*", "read, write";
-
-	////////////////////////////////////////////////////
 	// Load crypto providers.
 	// The loading of crypto providers should really
 	// be moved in the bootstrapper. We need to fix
 	// this in a future release.
+        // FIX
 	permission java.security.SecurityPermission "insertProvider.SunJCE";
 	permission java.security.SecurityPermission "insertProvider.SunJSSE";
 	permission java.security.SecurityPermission "insertProvider.CryptixCrypto";
@@ -585,16 +391,6 @@ grant signedBy "privileged" {
 	permission java.io.FilePermission "${org.cougaar.install.path}${/}*", "read";
         permission java.io.FilePermission "${org.cougaar.install.path}${/}", "read";
 
-	//permission java.io.FilePermission "${org.cougaar.install.path}${/}csmart${/}data${/}debug.properties", "read";
-	//permission java.io.FilePermission "${org.cougaar.install.path}${/}*", "read, write";
-	//permission java.io.FilePermission "${org.cougaar.workspace}${/}*", "read, write";
-	//permission java.io.FilePermission "${org.cougaar.workspace}${/}-", "read, write";
-	//permission java.io.FilePermission "${org.cougaar.workspace}${/}", "read, write";
-	//permission java.io.FilePermission "-", "read, write";
-	//permission java.io.FilePermission "*", "read, write";
-	//permission java.io.FilePermission "", "read, write";
-
-
 	// Reason: persistence package requires it.
 	permission java.io.FilePermission "${org.cougaar.install.path}${/}P${/}", "read,write,delete";
 	permission java.io.FilePermission "${org.cougaar.install.path}${/}P${/}-", "read,write,delete";
@@ -675,75 +471,3 @@ grant {
 	permission java.io.FilePermission "${org.cougaar.install.path}${/}lib${/}-", "read";
 };
 
-////////////////////////////////////////////////////////////
-// Permissions for code outside core (Plugins, LDMs, etc)
-
-
-////////////////////////////////////////////////////////////
-// Permissions for everybody else
-// No permission: unsigned code should not have access
-// to any system resource.
-grant signedBy "unprivileged" { 
-	// "standard" properies that can be read by anyone
-
-	permission java.util.PropertyPermission "java.version", "read";
-	permission java.util.PropertyPermission "java.vendor", "read";
-	permission java.util.PropertyPermission "java.vendor.url", "read";
-	permission java.util.PropertyPermission "java.class.version", "read";
-	permission java.util.PropertyPermission "os.name", "read";
-	permission java.util.PropertyPermission "os.version", "read";
-	permission java.util.PropertyPermission "os.arch", "read";
-	permission java.util.PropertyPermission "file.separator", "read";
-	permission java.util.PropertyPermission "path.separator", "read";
-	permission java.util.PropertyPermission "line.separator", "read";
-
-	permission java.util.PropertyPermission "java.specification.version", "read";
-	permission java.util.PropertyPermission "java.specification.vendor", "read";
-	permission java.util.PropertyPermission "java.specification.name", "read";
-
-	permission java.util.PropertyPermission "java.vm.specification.version", "read";
-	permission java.util.PropertyPermission "java.vm.specification.vendor", "read";
-	permission java.util.PropertyPermission "java.vm.specification.name", "read";
-	permission java.util.PropertyPermission "java.vm.version", "read";
-	permission java.util.PropertyPermission "java.vm.vendor", "read";
-	permission java.util.PropertyPermission "java.vm.name", "read";
-
-	// Swing properties
-	permission java.util.PropertyPermission "swing.*", "read";
-
-	/////////////////////////////////////////////////
-	// Socket permissions
-	// Allows to listen on un-privileged ports
-	// PSPs and LDM need socket permissions. A new protection domain
-	// should probably be specifically defined for PSPs and LDMs.
-	permission java.net.SocketPermission "localhost:1024-", "listen";
-	// Allows to listen on un-privileged ports
-        //   The []'s indicate ipv6 addresses - many systems don't need this
-	permission java.net.SocketPermission "*:1024-", "accept,connect";
-	permission java.net.SocketPermission "[*]:1024-", "accept,connect";
-
-	/////////////////////////////////////////////////
-	// AWT Permissions
-	// Without this warning, an applet may pop up windows without the user knowing
-	// that they belong to an applet. Since users may make security-sensitive
-	// decisions based on whether or not the window belongs to an applet
-	// (entering a username and password into a dialog box, for example),
-	//  disabling this warning banner may allow applets to trick the user into
-	// entering such information.
-	permission java.awt.AWTPermission "showWindowWithoutWarningBanner";
-
-	// This would allow malfeasant code to share potentially sensitive or
-	// confidential information.
-	// FIX: Do we really need access to the clipboard?
-	permission java.awt.AWTPermission "accessClipboard";
-
-	// After retrieving the AWT event queue, malicious code may peek at and even
-	// remove existing events from its event queue, as well as post bogus events
-	// which may purposefully cause the application or applet to misbehave in an
-	// insecure manner.
-	// FIX: Why do we need access to the event queue?
-	permission java.awt.AWTPermission "accessEventQueue";
-
-	// "Cougaar" properies that can be read
-	permission java.util.PropertyPermission "org.cougaar.*", "read";
-};

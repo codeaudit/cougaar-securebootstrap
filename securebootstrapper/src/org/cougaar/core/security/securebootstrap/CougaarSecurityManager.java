@@ -413,6 +413,7 @@ public class CougaarSecurityManager extends SecurityManager {
           break;
         }
       }
+      secexp.printStackTrace();
       stackElements.add(0, element);
     }
 
