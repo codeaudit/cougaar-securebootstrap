@@ -6,6 +6,8 @@
          * Custom build below
          ******************************************************************************** -->
     <path id="core.class.path">    
+        <!-- Base class path -->
+        <path refid="base.core.class.path"/>
         <!-- Cougaar packages -->
         <pathelement location="${cougaar.install.path}/lib/build.jar"/>
         <pathelement location="${cougaar.install.path}/lib/bootstrap.jar"/>
