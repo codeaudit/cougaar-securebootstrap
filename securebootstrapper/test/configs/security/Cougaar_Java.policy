@@ -233,6 +233,10 @@ grant signedBy "privileged" {
         // FIX: why is this needed by everybody?
 	permission java.util.PropertyPermission "tomcat.*", "read, write";
 
+        // reflect permision required by ide
+        permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+
+
 	///////////////////////////////////////////////////
 	// Package access permissions
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.beans.infos";
@@ -248,7 +252,8 @@ grant signedBy "privileged" {
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.security.util";
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.security.provider";
         permission java.lang.RuntimePermission "accessClassInPackage.sun.util.calendar";
-
+        permission java.lang.RuntimePermission "accessClassInPackage.sun.reflect";
+        permission java.lang.RuntimePermission  "reflectionFactoryAccess";
 	///////////////////////////////////////////////////
 	// This permission is needed by the AgentManager to associate a JAAS
 	// subject with an agent when it starts an agent.
