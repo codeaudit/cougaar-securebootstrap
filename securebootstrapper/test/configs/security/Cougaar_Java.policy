@@ -77,6 +77,8 @@ grant signedBy "bootstrapper" {
 	//permission java.io.FilePermission "${org.cougaar.install.path}${/}log${/}bootstrap${/}", "read";
 	permission org.cougaar.core.security.crypto.KeyRingPermission "installPkcs7Reply";
 	permission org.cougaar.core.security.crypto.KeyRingPermission "readPrivateKey";
+
+	permission java.util.PropertyPermission "*", "read, write";
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}Commons_isat_plugins.jar" {
