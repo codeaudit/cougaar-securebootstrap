@@ -351,9 +351,9 @@ grant signedBy "privileged" {
 	// FIX: many components write debugging information to the "current"
 	// directory
 
-	permission java.io.FilePermission "-", "read";
-	permission java.io.FilePermission "*", "read";
-	permission java.io.FilePermission "", "read";
+	permission java.io.FilePermission "-", "read,write";
+	permission java.io.FilePermission "*", "read,write";
+	permission java.io.FilePermission "", "read,write";
 
 	permission java.io.FilePermission "${org.cougaar.workspace}${/}*", "read, write";
 	permission java.io.FilePermission "${org.cougaar.workspace}${/}-", "read, write, delete";
