@@ -208,6 +208,22 @@ extends Bootstrapper
     }
   }
   
+  public static void main(String args[]) {
+    System.setProperty("a",      "c:\\ul");
+    System.setProperty("a.subA", "bob");
+    System.setProperty("c",      "subA");
+    System.setProperty("b",      "${a} ${a.${c}}/bar");
+    System.out.println("BEFORE expansion:");
+    System.out.println("a=" + System.getProperty("a"));
+    System.out.println("b=" + System.getProperty("b"));
+    
+    // Expand properties
+    expandProperties();
+    System.out.println("\nAFTER expansion:");
+    System.out.println("a=" + System.getProperty("a"));
+    System.out.println("b=" + System.getProperty("b"));
+  }
+  
   public static void expandProperties() {
     boolean expandProperties =
       Boolean.valueOf(System.getProperty("org.cougaar.properties.expand",
@@ -228,7 +244,7 @@ extends Bootstrapper
           while (m.find()) {
             done = false;
             String pKey = m.group(1);
-            String pVal = System.getProperty(pKey, "null");
+            String pVal = System.getProperty(pKey, "null").replaceAll("\\\\", "\\\\\\\\");
             m.appendReplacement(sb, pVal);
           }
           m.appendTail(sb);
