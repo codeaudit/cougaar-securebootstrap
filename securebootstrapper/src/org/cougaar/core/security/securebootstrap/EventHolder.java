@@ -45,12 +45,14 @@ public class EventHolder extends Observable  {
   //private LoggingService log=null; 
   private final long delay  =50;
   private boolean observerNotified=false;
+  private boolean monitoring ;
   Timer timer=null;
 
   protected EventHolder() {
     //this.log=ls;
     events = Collections.synchronizedList(new LinkedList());
     timer=new Timer();
+    monitoring = (Boolean.valueOf(System.getProperty("org.cougaar.core.security.monitoring","false"))).booleanValue();
   }
 
   
@@ -66,7 +68,7 @@ public class EventHolder extends Observable  {
   }
  
 
-  public synchronized void   register (Observer o) {
+  public synchronized void register (Observer o) {
     /*
       if(loggingService!=null) {
       loggingService.debug(" Observer is being added :"+o.toString());
@@ -98,11 +100,13 @@ public class EventHolder extends Observable  {
   }
   
   public void addEvent(BootstrapEvent o) {
-    synchronized (events) {
-      ListIterator iter=events.listIterator();
-      iter.add(o);
+    if(monitoring){
+      synchronized (events) {
+        ListIterator iter=events.listIterator();
+        iter.add(o);
+      }
+      timer.schedule(new NotifyTask(),delay);
     }
-    timer.schedule(new NotifyTask(),delay);
   }
   
   /**
@@ -115,7 +119,7 @@ public class EventHolder extends Observable  {
     
     public void run() {
       if(_instance.countObservers()>0)  {
-	ArrayList eventList=new ArrayList();
+        ArrayList eventList=new ArrayList();
         synchronized (_instance.events) {
           ListIterator iterator=_instance.events.listIterator();
           while(iterator.hasNext()) {
