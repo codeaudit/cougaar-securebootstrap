@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!-- 
+    Ant build script for Ultra*Log securityservices. 
+     
+    Usage: ant [-v] <target>
+     
+    Run ant in the current directory.  If no target is specified, ant will build
+    securityservices, jar and sign the jars.  Include  "-v" with ant for verbose mode.
+     
+    target:
+        all         - build, jar and sign securityservices (default).
+        cvs-update  - execute "cvs update -d" in the current directory
+        with-update - execute the cvs-update and all targets
+        install     - execute the all target, and install securityservices 
+                      signed jars and configuration files
+        javadocs    - create javadocs for securityservices
+        tar-docs    - tar and zip the javadocs
+        run-tests   - run Junit tests 
+        clean-log   - Delete log files
+        clean       - Delete .class and .jar files
+        help        - print out usage message     
+ 
+   To run junit tests, the following files must be included in the ANT lib directory:
+     1) junit.jar
+     2) jakarta-ant-1.4.1-optional.jar
+-->
+
+<project basedir="." default="all" name="Ultra*Log/securityservices">
+  
+    <!-- prefix for all environment variables -->
+    <property environment="env"/>
+    <property name="cougaar.install.path" value="${env.COUGAAR_INSTALL_PATH}"/>
+    <property name="cougaar.workspace" value="${env.COUGAAR_WORKSPACE}"/>
+    <property name="securityservices.base" value="."/>
+    <property name="securityservices.sys" value="${securityservices.base}${file.separator}sys"/>
+    <property name="securityservices.lib" value="${securityservices.base}${file.separator}lib"/>
+    <property name="securityservices.docdir" value="${securityservices.base}${file.separator}doc"/>
+    <property name="securityservices.staging" value="${securityservices.base}${file.separator}staging"/>
+    <property name="securityservices.configs" value="${securityservices.base}${file.separator}test${file.separator}configs"/> 
+    <!-- The classes directory for output classes and jar files -->
+    <property name="securityservices.classes" value="classes"/>
+    <!-- The output directory for signed jar files -->
+    <property name="securityservices.signed" value="${securityservices.classes}${file.separator}signed"/>
+    <!-- The base directories where the java source files are located -->
+    <property name="securityservices.src" value="${securityservices.base}${file.separator}src"/>
+    <!-- The base directories where the regression test files are located -->
+    <property name="securityservices.regress" value="${securityservices.base}${file.separator}regress"/>
+    <!-- The base directories where the regression test result files are located -->
+    <property name="securityservices.results" value="${securityservices.regress}${file.separator}results"/>
+
+    <path id="core.class.path">    
+        <!-- Cougaar packages -->
+        <pathelement location="${cougaar.install.path}/lib/build.jar"/>
+        <pathelement location="${cougaar.install.path}/lib/bootstrap.jar"/>
+    </path>
+
+    <target name="tstamp">
+        <tstamp>
+            <format property="currentTime" pattern="MM/dd/yyyy hh:mm:ss"/>
+        </tstamp>
+        <echo message="Build started at ${currentTime}"/>
+    </target>
+
+    <target name="init">
+        <mkdir dir="${securityservices.classes}"/>
+        <mkdir dir="${securityservices.signed}"/>
+        <mkdir dir="${securityservices.docdir}"/>
+
+        <!-- Fix End Of Line characters in source files -->
+        <fixcrlf srcdir="${securityservices.src}"
+          includes="**/*.java"
+           eol="lf" 
+           eof="remove"
+        />
+    </target>
+
+    <!-- Build the org.cougaar.core.security.securebootstrap package -->
+    <target name="build-securityservices" depends="init">
+        <echo message="+++++ Building security bootstrapper"/>
+        <javac classpathref="core.class.path" debug="true" 
+            deprecation="true" destdir="${securityservices.classes}"
+            source="1.4"
+            includes="org/cougaar/core/security/securebootstrap/**" srcdir="${securityservices.src}"/>
+        <echo message="+++++ Built security bootstrapper"/>
+    </target>
+    
+    <!-- jar security services -->
+    <target name="jar-securityservices" depends="build-securityservices">
+        <echo message="+++++ Building jar files"/>
+        <jar jarfile="${securityservices.classes}/securebootstrapper.jar" 
+            basedir="${securityservices.classes}"
+            includes="org/cougaar/core/security/securebootstrap/*.class"/>
+        <echo message="+++++ Built jar files"/>
+    </target>
+ 
+    <target name="jar-configs">
+        <echo message="+++++ Building configuration jar files"/>
+        <jar jarfile="${securityservices.classes}/configs_securebootstrapper.jar" 
+            basedir="${securityservices.configs}"
+            includes="security/*.xml,
+          	   security/*.dtd,
+        	   security/*.conf"/>
+        <echo message="+++++ Built configuration jar files"/>
+    </target>
+    
+    <!-- sign security services -->
+    <target name="sign-jars" depends="jar-securityservices, jar-configs">
+        <echo message="+++++ Signing jar files"/>
+        <signjar jar="${securityservices.classes}/securebootstrapper.jar" alias="bootstrapper" 
+            signedjar="${securityservices.signed}/securebootstrapper.jar"
+            keystore="${securityservices.configs}/sign-jars/signingCA_keystore" 
+            storepass="keystore" verbose="false"/>
+        <signjar jar="${securityservices.classes}/configs_securebootstrapper.jar" alias="privileged" 
+            signedjar="${securityservices.signed}/configs_securebootstrapper.jar"
+            keystore="${securityservices.configs}/sign-jars/signingCA_keystore" 
+            storepass="keystore" verbose="false"/>
+        <echo message="+++++ Signed jar files"/>
+    </target>
+    
+    <!-- install security services -->
+    <target name="install-signed-jars" depends="sign-jars">
+        <echo message="+++++ Installing signed jar files"/>
+        <delete dir="${securityservices.staging}" includeEmptyDirs="true" quiet="true"/>
+        <mkdir dir="${securityservices.staging}"/>
+        <copy file="${securityservices.signed}/securebootstrapper.jar" 
+            todir="${securityservices.staging}/lib"/>
+        <echo message="+++++ Installed signed jar files"/>
+    </target>
+            
+    <!-- install files -->
+    <target name="install-conf" depends="install-signed-jars, create-log-dirs">
+        <echo message="+++++ Generating ZIP files"/>
+     	<mkdir dir="${securityservices.staging}/configs/security"/>
+  	    <mkdir dir="${securityservices.staging}/csmart/config/rules/security"/>
+        <!-- The bootstrap_keystore itself should be outside a Jar file
+            so that we can verify jar files.
+            The Java policy file must also be outside a jar file. -->
+        <copy todir="${securityservices.staging}/configs/security">
+          <fileset dir="${securityservices.configs}/security">
+             <patternset>
+                <include name="bootstrap_keystore"/>
+                <include name="Cougaar_Java.policy"/>
+             </patternset>
+          </fileset>
+        </copy>
+        <copy file="${securityservices.signed}/configs_securebootstrapper.jar" 
+          todir="${securityservices.staging}/configs/security"/>
+        <copy todir="${securityservices.staging}/csmart/config/rules/security/">
+            <fileset dir="${securityservices.configs}/rules">
+                <patternset>
+                    <include name="*.rule"/>
+                </patternset>
+            </fileset>
+        </copy>
+     	<echo message="#### Building Zip file"/>
+		<zip zipfile="secure_bootstrapper.zip" basedir="staging"
+		     filesonly="false"/>	
+        <echo message="+++++ Generated ZIP file"/>
+    </target>
+    
+    <!-- create log directories -->
+    <target name="create-log-dirs">
+        <echo message="+++++ Creating log directories"/>
+        <mkdir dir="${securityservices.staging}/log/bootstrap"/>
+    	<touch file="${securityservices.staging}/log/bootstrap/notEmptyDir"/>
+        <echo message="+++++ Created log directories"/>
+    </target>
+
+    <!-- The ALL target only compiles, jar, and sign jars -->
+    <target name="all" depends="tstamp, init, install-conf">
+        <echo message="UltraLog secure bootstrapper Build Complete"/>
+    </target>
+    
+    <!-- The INSTALL target does everything but cvs-update and javadoc -->
+    <target name="install" depends="all">
+        <echo message="UltraLog secure bootstrapper Install Complete"/>
+		<unzip src="${securityservices.base}/secure_bootstrapper.zip"
+    	     dest="${cougaar.install.path}"/>	
+    </target>
+
+    <!-- Updating repository before building -->
+    <target name="cvs-update">
+      <cvs cvsRoot="${env.CVSROOT}" command="update -d"/>
+    </target>
+    <target name="cvs-update-junit">
+      <cvs  command="update -d -A"/>
+    </target>
+    
+    <!-- use 'ant with-update' to update repository executing the ALL target -->
+    <target name="with-update" depends="cvs-update, all"/>
+    
+    <!-- create javadocs for security services and JavaIDMEF -->
+    <target name="javadocs" depends="init" description="Generating security services and idmef javadocs">
+        <echo message="Creating JavaDocs for security services and JavaIDMEF"/>
+        <delete file="${securityservices.docdir}/javadoc.tar.gz" verbose="true"/>
+        <javadoc classpathref="core.class.path" destdir="${securityservices.docdir}"
+            windowtitle="UltraLog/secure bootstrapper API" sourcepath="${securityservices.src}" 
+            packagenames="org.cougaar.core.security.*" 
+            author="true" version="true"/>
+        <echo message="Generated JavaDocs for security services"/>
+    </target>
+	
+	  <!-- tar up javadoc and delete all files -->
+	  <target name="tar-docs" depends="javadocs">
+        <tar tarfile="${securityservices.docdir}/javadoc.tar" basedir="${securityservices.docdir}"
+            includes="*.html, *.css, org/*" 
+            includesfile="${securityservices.docdir}/package-list"/>
+        <gzip zipfile="${securityservices.docdir}/javadoc.tar.gz" 
+            src="${securityservices.docdir}/javadoc.tar"/>
+        <delete file="${securityservices.docdir}/javadoc.tar" verbose="true"/>
+        <delete includeEmptyDirs="true">
+            <fileset dir="${securityservices.docdir}">
+                <patternset>
+                    <include name="**/**"/>
+                    <exclude name="**/*.gz"/>
+                </patternset>
+            </fileset>
+        </delete>
+    </target>
+
+    <target name="create_cougaar_overlay" depends="all">
+	</target>
+
+    <!-- Delete the org class directories, and jar files -->
+    <target name="clean">
+        <echo message="+++++ Cleaning build environment"/>
+        <delete dir="${securityservices.classes}/org" includeEmptyDirs="true" quiet="true"/>
+        <delete dir="${securityservices.signed}" includeEmptyDirs="true" quiet="true"/>
+        <delete dir="${securityservices.staging}" includeEmptyDirs="true" quiet="true"/>
+        <delete quiet="true">
+           <fileset dir="${securityservices.classes}" includes="*.jar"/>
+        </delete>
+        <echo message="+++++ Cleaned build environment"/>
+    </target>
+
+ </project>
+
+<!-- End UltraLog/securityservices ant build script -->
