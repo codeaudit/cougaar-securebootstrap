@@ -148,6 +148,9 @@ implements CertificateVerifier
    * is valid */
   private boolean validSigVersion(JarFile jf, JarEntry je)
   throws IOException {
+    if (je == null) {
+      throw new IllegalArgumentException("JarEntry is null");
+    }
     InputStream in = jf.getInputStream(je);
     InputStreamReader inReader = new InputStreamReader(in);
     BufferedReader buffReader = new BufferedReader(inReader);
@@ -171,11 +174,16 @@ implements CertificateVerifier
    */
   private void verifySigVersion(JarFile jf, List sigFiles)
   throws IOException, SignatureException {
-    for (int i=0; i<sigFiles.size(); i++) {
-      if (!validSigVersion(jf, (JarEntry)sigFiles.get(i))) {
+    Iterator it = sigFiles.iterator();
+    if (sigFiles.size() == 0) {
+      throw new SignatureException("The JAR file " + jf.getName() + " has no signature");
+    }
+    while (it.hasNext()) {
+      JarEntry je = (JarEntry)it.next();
+      if (!validSigVersion(jf, je)) {
         SignatureException e =
           new SignatureException("Problem with " + jf.getName() + "/" + 
-              ((JarEntry)sigFiles.get(i)).getName()
+              je.getName()
               + ". \n\tInvalid or missing signature version.");
         throw e;
       }
@@ -431,7 +439,8 @@ implements CertificateVerifier
     Enumeration e = jf.entries();
     JarEntry thisEntry = null;
     while(e.hasMoreElements()) {
-      String name = ((JarEntry)e.nextElement()).getName().toUpperCase();
+      thisEntry = (JarEntry)e.nextElement();
+      String name = thisEntry.getName().toUpperCase();
       if (name.startsWith("META-INF")) {
         for (int i = 0 ; i < entrytypes.length ; i++) {
           if (name.endsWith(entrytypes[i])) {
