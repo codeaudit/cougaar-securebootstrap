@@ -209,19 +209,79 @@ extends Bootstrapper
   }
   
   public static void main(String args[]) {
-    System.setProperty("a",      "c:\\ul");
+    System.setProperty("a",      "c:\\cougaar");
     System.setProperty("a.subA", "bob");
-    System.setProperty("c",      "subA");
     System.setProperty("b",      "${a} ${a.${c}}/bar");
+    System.setProperty("c",      "subA");
+    System.setProperty("d",      "\\$\\{a\\} ${a.${c}}/bar");
+    System.setProperty("e",      "\\\\$\\{a\\} ${a.${c}}/bar");
+    // Test forward references
+    System.setProperty("W",      "${b}");
+    // Test circular references
+    System.setProperty("x",      "${y}");
+    System.setProperty("y",      "${z}");
+    System.setProperty("z",      "${x}");
+    
     System.out.println("BEFORE expansion:");
     System.out.println("a=" + System.getProperty("a"));
     System.out.println("b=" + System.getProperty("b"));
+    System.out.println("c=" + System.getProperty("c"));
+    System.out.println("d=" + System.getProperty("d"));
+    System.out.println("e=" + System.getProperty("e"));
+    System.out.println("W=" + System.getProperty("W"));
+    System.out.println("x=" + System.getProperty("x"));
+    System.out.println("y=" + System.getProperty("y"));
+    System.out.println("z=" + System.getProperty("z"));
     
     // Expand properties
     expandProperties();
     System.out.println("\nAFTER expansion:");
     System.out.println("a=" + System.getProperty("a"));
     System.out.println("b=" + System.getProperty("b"));
+    System.out.println("d=" + System.getProperty("d"));
+    System.out.println("e=" + System.getProperty("e"));
+    System.out.println("W=" + System.getProperty("W"));
+    System.out.println("x=" + System.getProperty("x"));
+    System.out.println("y=" + System.getProperty("y"));
+    System.out.println("z=" + System.getProperty("z"));
+  }
+  
+  private static final Pattern expandPattern = Pattern.compile("\\$\\{([^\\$\\{\\}]*)\\}");
+  private static final Pattern escapePattern = Pattern.compile("\\\\\\$\\\\\\{([^\\$\\{\\}]*)\\\\\\}");
+  
+  private static String expandProperty(Properties props, String key, List references) {
+    String value = props.getProperty(key);
+    boolean done = false;
+    while (!done) {
+      Matcher m = expandPattern.matcher(value);
+      StringBuffer sb = new StringBuffer();
+      done = true;
+      while (m.find()) {
+        done = false;
+        String pKey = m.group(1);
+        /* The replaceAll is needed to handle the backslash character
+         * in directory names, e.g. c:\cougaar
+         * Otherwise the resulting string would be "c:cougaar"
+         */
+        String pVal = System.getProperty(pKey, "null").replaceAll("\\\\", "\\\\\\\\");
+        if (expandPattern.matcher(pVal).find()) {
+          // This is a forward reference
+          if (references.contains(pKey)) {
+            // This is a circular reference.
+            throw new IllegalArgumentException("Circular reference at " + pKey + " = " + pVal);
+            
+          }
+          references.add(pKey);
+          pVal = expandProperty(props, pKey, references).replaceAll("\\\\", "\\\\\\\\");
+        }
+        m.appendReplacement(sb, pVal);
+      }
+      m.appendTail(sb);
+      value = sb.toString();
+    }
+    value = escapePattern.matcher(value).replaceAll("\\$\\{$1\\}");
+    props.setProperty(key, value);
+    return value;
   }
   
   public static void expandProperties() {
@@ -231,26 +291,11 @@ extends Bootstrapper
     
     if (expandProperties) {
       Properties props = System.getProperties();
-      Pattern p = Pattern.compile("\\$\\{([^\\$\\{\\}]*)\\}");
       Enumeration en = props.propertyNames();
       while (en.hasMoreElements()) {
         String key = (String)en.nextElement();
-        String value = props.getProperty(key);
-        boolean done = false;
-        while (!done) {
-          Matcher m = p.matcher(value);
-          StringBuffer sb = new StringBuffer();
-          done = true;
-          while (m.find()) {
-            done = false;
-            String pKey = m.group(1);
-            String pVal = System.getProperty(pKey, "null").replaceAll("\\\\", "\\\\\\\\");
-            m.appendReplacement(sb, pVal);
-          }
-          m.appendTail(sb);
-          value = sb.toString();
-        }
-        props.setProperty(key, value);
+        List references = new ArrayList();
+        expandProperty(props, key, references);
       }
     }
   }
