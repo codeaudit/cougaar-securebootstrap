@@ -394,6 +394,8 @@ public class CougaarSecurityManager extends SecurityManager {
     ArrayList stackElements = new ArrayList(ste.length);
     int stackTraceIndex = ste.length - 1;
 
+    secexp.printStackTrace();
+
     // Walk through the stack frames from the top. 
     for (int stackIndex = stack.length - 1 ; stackIndex >= 0 ; stackIndex--) {
 
@@ -409,11 +411,10 @@ public class CougaarSecurityManager extends SecurityManager {
         // according to the Java doc.
         if (ste[j].getClassName().equals(stack[stackIndex].getName())) {
           element.stackTraceElement = ste[j];
-          stackTraceIndex = j;
+          stackTraceIndex = j - 1;
           break;
         }
       }
-      secexp.printStackTrace();
       stackElements.add(0, element);
     }
 
