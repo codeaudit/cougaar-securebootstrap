@@ -130,6 +130,7 @@ grant codeBase "file:${org.cougaar.install.path}${/}lib${/}core.jar" signedBy "p
         permission org.cougaar.core.security.crypto.KeyRingPermission "getKeyStore";
 
 	permission org.cougaar.core.security.access.AccessPermission "org.cougaar.core.service.MessageTransportService";
+        // This is needed to run on Windows
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}aggagent.jar" signedBy "privileged" {
@@ -233,6 +234,8 @@ grant signedBy "privileged" {
         permission java.lang.RuntimePermission "accessClassInPackage.sun.io";
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.net";
+        // Needed on Windows platforms
+        permission java.lang.RuntimePermission "accessClassInPackage.sun.net.www.protocol.c";
         permission java.lang.RuntimePermission "accessClassInPackage.sun.rmi.server";
         permission java.lang.RuntimePermission "accessClassInPackage.sun.rmi.transport";
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.security.x509";
@@ -240,7 +243,6 @@ grant signedBy "privileged" {
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.security.util";
 	permission java.lang.RuntimePermission "accessClassInPackage.sun.security.provider";
         permission java.lang.RuntimePermission "accessClassInPackage.sun.util.calendar";
-
 
 	///////////////////////////////////////////////////
 	// This permission is needed by the AgentManager to associate a JAAS
