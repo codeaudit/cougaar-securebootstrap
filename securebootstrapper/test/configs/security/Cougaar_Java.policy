@@ -198,6 +198,10 @@ grant codeBase "file:${org.cougaar.install.path}${/}lib${/}safe.jar" signedBy "p
   permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.security.services.util.ConfigParserService";
 };
 
+grant codeBase "file:${org.cougaar.install.path}${/}lib${/}community.jar" signedBy "privileged" {
+  permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.community.CommunityProtectionService";
+};
+
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}mtsstd.jar" signedBy "privileged" {
   // The MTS needs the message protection service to protect messages.
   permission org.cougaar.core.security.provider.SecurityServicePermission "org.cougaar.core.service.MessageProtectionService";
