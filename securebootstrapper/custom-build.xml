@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." name="Cougaar security services custom build">
+
+    <!-- ********************************************************************************
+         * Custom build below
+         ******************************************************************************** -->
+    <path id="core.class.path">    
+        <!-- Cougaar packages -->
+        <pathelement location="${cougaar.install.path}/lib/build.jar"/>
+        <pathelement location="${cougaar.install.path}/lib/bootstrap.jar"/>
+    </path>
+
+    <target name="custom-install-conf" id="custom.install">
+        <mkdir dir="${securityservices.staging}/log/bootstrap"/>
+        <touch file="${securityservices.staging}/log/bootstrap/notEmptyDir"/>
+        <!-- The bootstrap_keystore itself should be outside a Jar file
+            so that we can verify jar files.
+            The Java policy file must also be outside a jar file. -->
+        <copy todir="${securityservices.staging}/configs/security">
+          <fileset dir="${securityservices.configs}/security">
+             <patternset>
+                <include name="bootstrap_keystore"/>
+                <include name="Cougaar_Java.policy"/>
+                <include name="cryptoprovider.conf"/>
+                <include name="secureConfig.conf"/>
+             </patternset>
+          </fileset>
+        </copy>
+    </target>
+
+</project>
