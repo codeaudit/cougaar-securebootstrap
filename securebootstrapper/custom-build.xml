@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project basedir="." name="Cougaar security services custom build">
+<project basedir="." name="Cougaar secure bootstrapper custom build">
 
     <!-- ********************************************************************************
          * Custom build below
