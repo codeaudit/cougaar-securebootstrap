@@ -52,7 +52,7 @@
 		<property name="project.description"
 		value="UltraLog secure bootstrapper"/>
 	<property name="project.name"
-		value="securebootstrapper"/>
+		value="secure_bootstrapper"/>
 
     <path id="core.class.path">    
         <!-- Cougaar packages -->
@@ -87,7 +87,7 @@
             deprecation="true" destdir="${securityservices.classes}"
             source="1.4">
           <src path="${securityservices.src}"/>
-          <src path="${securityservices.base}/test/src"/>
+          <!-- <src path="${securityservices.base}/test/src"/> -->
           <include name="org/cougaar/core/security/**"/>
         </javac>
         <echo message="+++++ Built ${project.description}"/>
@@ -98,7 +98,7 @@
         <echo message="+++++ Building jar files"/>
         <jar jarfile="${securityservices.classes}/${project.name}.jar" 
             basedir="${securityservices.classes}"
-            includes="org/cougaar/core/security/securebootstrap/*.class"/>
+            includes="org/cougaar/core/security/**"/>
         <echo message="+++++ Built jar files"/>
     </target>
  
