@@ -178,6 +178,8 @@ grant signedBy "securitymodule"  {
         permission java.lang.RuntimePermission "getClassLoader";
 	permission java.lang.RuntimePermission "createClassLoader";
 	permission javax.security.auth.AuthPermission "setReadOnly";
+	permission org.cougaar.core.security.pedigree.PedigreePermission "setPedigree";
+	permission org.cougaar.core.security.pedigree.PedigreePermission "getPedigreeHandler";
 	permission org.cougaar.core.security.auth.ContextPermission "setContextService";
 	permission org.cougaar.core.security.auth.ContextPermission "setAuthorizationService";
 	permission org.cougaar.core.security.crypto.KeyRingPermission "readPrivateKey";
