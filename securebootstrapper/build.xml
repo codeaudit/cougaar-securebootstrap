@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
  
 <!-- 
-    Ant build script for Ultra*Log securityservices. 
+    Ant build script for UltraLog secure bootstrapper. 
      
     Usage: ant [-v] <target>
      
@@ -26,7 +26,7 @@
      2) jakarta-ant-1.4.1-optional.jar
 -->
 
-<project basedir="." default="all" name="Ultra*Log/securityservices">
+<project basedir="." default="all" name="UltraLog secure bootstrapper">
   
     <!-- prefix for all environment variables -->
     <property environment="env"/>
@@ -49,6 +49,11 @@
     <!-- The base directories where the regression test result files are located -->
     <property name="securityservices.results" value="${securityservices.regress}${file.separator}results"/>
 
+		<property name="project.description"
+		value="UltraLog secure bootstrapper"/>
+	<property name="project.name"
+		value="securebootstrapper"/>
+
     <path id="core.class.path">    
         <!-- Cougaar packages -->
         <pathelement location="${cougaar.install.path}/lib/build.jar"/>
@@ -62,7 +67,7 @@
         <echo message="Build started at ${currentTime}"/>
     </target>
 
-    <target name="init">
+    <target name="init" depends="tstamp">
         <mkdir dir="${securityservices.classes}"/>
         <mkdir dir="${securityservices.signed}"/>
         <mkdir dir="${securityservices.docdir}"/>
@@ -77,18 +82,21 @@
 
     <!-- Build the org.cougaar.core.security.securebootstrap package -->
     <target name="build-securityservices" depends="init">
-        <echo message="+++++ Building security bootstrapper"/>
+        <echo message="+++++ Building ${project.description}"/>
         <javac classpathref="core.class.path" debug="true" 
             deprecation="true" destdir="${securityservices.classes}"
-            source="1.4"
-            includes="org/cougaar/core/security/securebootstrap/**" srcdir="${securityservices.src}"/>
-        <echo message="+++++ Built security bootstrapper"/>
+            source="1.4">
+          <src path="${securityservices.src}"/>
+          <src path="${securityservices.base}/test/src"/>
+          <include name="org/cougaar/core/security/**"/>
+        </javac>
+        <echo message="+++++ Built ${project.description}"/>
     </target>
     
     <!-- jar security services -->
     <target name="jar-securityservices" depends="build-securityservices">
         <echo message="+++++ Building jar files"/>
-        <jar jarfile="${securityservices.classes}/securebootstrapper.jar" 
+        <jar jarfile="${securityservices.classes}/${project.name}.jar" 
             basedir="${securityservices.classes}"
             includes="org/cougaar/core/security/securebootstrap/*.class"/>
         <echo message="+++++ Built jar files"/>
@@ -96,7 +104,7 @@
  
     <target name="jar-configs">
         <echo message="+++++ Building configuration jar files"/>
-        <jar jarfile="${securityservices.classes}/configs_securebootstrapper.jar" 
+        <jar jarfile="${securityservices.classes}/configs_${project.name}.jar" 
             basedir="${securityservices.configs}"
             includes="security/*.xml,
           	   security/*.dtd,
@@ -107,12 +115,12 @@
     <!-- sign security services -->
     <target name="sign-jars" depends="jar-securityservices, jar-configs">
         <echo message="+++++ Signing jar files"/>
-        <signjar jar="${securityservices.classes}/securebootstrapper.jar" alias="bootstrapper" 
-            signedjar="${securityservices.signed}/securebootstrapper.jar"
+        <signjar jar="${securityservices.classes}/${project.name}.jar" alias="bootstrapper" 
+            signedjar="${securityservices.signed}/${project.name}.jar"
             keystore="${securityservices.configs}/sign-jars/signingCA_keystore" 
             storepass="keystore" verbose="false"/>
-        <signjar jar="${securityservices.classes}/configs_securebootstrapper.jar" alias="privileged" 
-            signedjar="${securityservices.signed}/configs_securebootstrapper.jar"
+        <signjar jar="${securityservices.classes}/configs_${project.name}.jar" alias="privileged" 
+            signedjar="${securityservices.signed}/configs_${project.name}.jar"
             keystore="${securityservices.configs}/sign-jars/signingCA_keystore" 
             storepass="keystore" verbose="false"/>
         <echo message="+++++ Signed jar files"/>
@@ -123,7 +131,7 @@
         <echo message="+++++ Installing signed jar files"/>
         <delete dir="${securityservices.staging}" includeEmptyDirs="true" quiet="true"/>
         <mkdir dir="${securityservices.staging}"/>
-        <copy file="${securityservices.signed}/securebootstrapper.jar" 
+        <copy file="${securityservices.signed}/${project.name}.jar" 
             todir="${securityservices.staging}/lib"/>
         <echo message="+++++ Installed signed jar files"/>
     </target>
@@ -131,7 +139,8 @@
     <!-- install files -->
     <target name="install-conf" depends="install-signed-jars, create-log-dirs">
         <echo message="+++++ Generating ZIP files"/>
-     	<mkdir dir="${securityservices.staging}/configs/security"/>
+     	<mkdir dir="${securityservices.staging}/Manifest"/>
+    	<mkdir dir="${securityservices.staging}/configs/security"/>
   	    <mkdir dir="${securityservices.staging}/csmart/config/rules/security"/>
         <!-- The bootstrap_keystore itself should be outside a Jar file
             so that we can verify jar files.
@@ -144,7 +153,7 @@
              </patternset>
           </fileset>
         </copy>
-        <copy file="${securityservices.signed}/configs_securebootstrapper.jar" 
+        <copy file="${securityservices.signed}/configs_${project.name}.jar" 
           todir="${securityservices.staging}/configs/security"/>
         <copy todir="${securityservices.staging}/csmart/config/rules/security/">
             <fileset dir="${securityservices.configs}/rules">
@@ -153,8 +162,13 @@
                 </patternset>
             </fileset>
         </copy>
+        <tstamp>
+            <format property="zipTime" pattern="MM/dd/yyyy hh:mm:ss"/>
+        </tstamp>
+    	<echo message="Built ${zipTime}"
+    	   file="${securityservices.staging}/Manifest/securityservices.txt"/>
      	<echo message="#### Building Zip file"/>
-		<zip zipfile="secure_bootstrapper.zip" basedir="staging"
+		<zip zipfile="${project.name}.zip" basedir="staging"
 		     filesonly="false"/>	
         <echo message="+++++ Generated ZIP file"/>
     </target>
@@ -174,9 +188,9 @@
     
     <!-- The INSTALL target does everything but cvs-update and javadoc -->
     <target name="install" depends="all">
-        <echo message="UltraLog secure bootstrapper Install Complete"/>
-		<unzip src="${securityservices.base}/secure_bootstrapper.zip"
+		<unzip src="${securityservices.base}/${project.name}.zip"
     	     dest="${cougaar.install.path}"/>	
+        <echo message="${project.description} Install Complete"/>
     </target>
 
     <!-- Updating repository before building -->
