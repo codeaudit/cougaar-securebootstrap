@@ -150,6 +150,8 @@
              <patternset>
                 <include name="bootstrap_keystore"/>
                 <include name="Cougaar_Java.policy"/>
+                <include name="cryptoprovider.conf"/>
+                <include name="secureConfig.conf"/>
              </patternset>
           </fileset>
         </copy>

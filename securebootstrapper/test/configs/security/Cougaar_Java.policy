@@ -62,28 +62,31 @@ grant codeBase "file:${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar" {
 grant codeBase "file:${org.cougaar.install.path}${/}sys${/}sunjce_provider.jar" {
 	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
 	// documentation for a description of the following permissions.
-	permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
+	//permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
 	permission java.lang.RuntimePermission "getProtectionDomain";
 	permission java.security.SecurityPermission "putProviderProperty.SunJCE";
-};
-
-grant codeBase "file:${org.cougaar.install.path}${/}lib${/}Commons_isat_plugins.jar" {
-	// setIO is required for the ACME environment only.
-	permission java.lang.RuntimePermission "setIO";
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}sys${/}IBMJCEProvider.jar" {
 	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
 	// documentation for a description of the following permissions.
-	permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
+	//permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
 	permission java.lang.RuntimePermission "getProtectionDomain";
 	permission java.security.SecurityPermission "putProviderProperty.SunJCE";
+};
+
+grant codeBase "file:${org.cougaar.install.path}${/}sys${/}bcprov-jdk14-122.jar" {
+	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
+	// documentation for a description of the following permissions.
+	//permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
+	permission java.lang.RuntimePermission "getProtectionDomain";
+	permission java.security.SecurityPermission "putProviderProperty.BC";
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}sys${/}jsse.jar" {
 	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
 	// documentation for a description of the following permissions.
-	permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
+	//permission java.io.FilePermission "${org.cougaar.install.path}${/}sys${/}jce1_2_1.jar", "read";
 	permission java.lang.RuntimePermission "getProtectionDomain";
 	permission java.security.SecurityPermission "putProviderProperty.SunJCE";
 };
@@ -91,6 +94,11 @@ grant codeBase "file:${org.cougaar.install.path}${/}sys${/}jsse.jar" {
 // FIX: do we want to grant all permissions to all the JAR files in the sys path?
 grant codeBase "file:${org.cougaar.install.path}${/}sys${/}*" {
 	permission java.security.AllPermission;
+};
+
+grant codeBase "file:${org.cougaar.install.path}${/}lib${/}Commons_isat_plugins.jar" {
+	// setIO is required for the ACME environment only.
+	permission java.lang.RuntimePermission "setIO";
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -225,7 +233,7 @@ grant codeBase "file:${org.cougaar.install.path}${/}sys${/}jpcsc.jar" signedBy "
         permission java.lang.RuntimePermission "loadLibrary.jpcsc";
 };
 
-grant codeBase "file:${org.cougaar.install.path}${/}lib${/}securityservices.jar" signedBy "privileged"  {
+grant signedBy "securitymodule"  {
         permission java.security.SecurityPermission "getPolicy";
         permission java.security.SecurityPermission "setPolicy";
         permission java.security.SecurityPermission "createAccessControlContext";
