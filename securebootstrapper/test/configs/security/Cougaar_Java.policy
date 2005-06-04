@@ -482,8 +482,6 @@ grant signedBy "privileged" {
 };
 
 grant { 
-        permission java.io.FilePermission "/usr/bin/uptime", "execute";
-
 	// Required by the Jython interpreter.
 	// Jython creates Java classes on the fly, and the classes are not signed.
 	// TODO: find a better solution
