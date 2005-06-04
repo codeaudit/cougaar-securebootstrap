@@ -44,7 +44,7 @@ grant codeBase "file:${java.home}${/}lib${/}ext${/}*" {
 
 // Crypto providers are listed in the cryptoprovider.conf file under the configs/security directory.
 
-grant codeBase "file:${org.cougaar.install.path}${/}sys${/}bcprov-jdk14-122.jar" {
+grant codeBase "file:${org.cougaar.install.path}${/}sys${/}bcprov-jdk14-125.jar" {
 	// Refer to SUN Java Cryptography Extension (JCE) 1.2.1
 	// documentation for a description of the following permissions.
 	permission java.lang.RuntimePermission "getProtectionDomain";
@@ -113,7 +113,6 @@ grant codeBase "file:${org.cougaar.install.path}${/}sys${/}tomcat_40.jar" signed
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}core.jar" signedBy "privileged" {
-        permission java.io.FilePermission "/System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Classes/classes.jar", "read";
 	// setIO is required for the ACME environment only.
 	permission java.lang.RuntimePermission "setIO";
 
@@ -143,7 +142,6 @@ grant codeBase "file:${org.cougaar.install.path}${/}lib${/}aggagent.jar" signedB
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}util.jar" signedBy "privileged" {
-        permission java.io.FilePermission "/System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Classes/classes.jar", "read";
 	// setIO is required for the ACME environment only.
 	permission java.lang.RuntimePermission "setIO";
 
@@ -177,6 +175,8 @@ grant signedBy "securitymodule"  {
         permission java.security.SecurityPermission "createAccessControlContext";
         permission javax.security.auth.AuthPermission "getSubject";
         permission java.util.logging.LoggingPermission "control";
+        permission java.lang.RuntimePermission "accessClassInPackage.sun.security.tools";
+        permission java.lang.RuntimePermission "accessClassInPackage.sun.security.timestamp";
         permission java.lang.RuntimePermission "getClassLoader";
 	permission java.lang.RuntimePermission "createClassLoader";
 	permission javax.security.auth.AuthPermission "setReadOnly";
