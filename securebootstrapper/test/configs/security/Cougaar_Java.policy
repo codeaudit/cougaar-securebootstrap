@@ -113,6 +113,7 @@ grant codeBase "file:${org.cougaar.install.path}${/}sys${/}tomcat_40.jar" signed
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}core.jar" signedBy "privileged" {
+        permission java.io.FilePermission "/System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Classes/classes.jar", "read";
 	// setIO is required for the ACME environment only.
 	permission java.lang.RuntimePermission "setIO";
 
@@ -142,6 +143,7 @@ grant codeBase "file:${org.cougaar.install.path}${/}lib${/}aggagent.jar" signedB
 };
 
 grant codeBase "file:${org.cougaar.install.path}${/}lib${/}util.jar" signedBy "privileged" {
+        permission java.io.FilePermission "/System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Classes/classes.jar", "read";
 	// setIO is required for the ACME environment only.
 	permission java.lang.RuntimePermission "setIO";
 
@@ -480,6 +482,8 @@ grant signedBy "privileged" {
 };
 
 grant { 
+        permission java.io.FilePermission "/usr/bin/uptime", "execute";
+
 	// Required by the Jython interpreter.
 	// Jython creates Java classes on the fly, and the classes are not signed.
 	// TODO: find a better solution
