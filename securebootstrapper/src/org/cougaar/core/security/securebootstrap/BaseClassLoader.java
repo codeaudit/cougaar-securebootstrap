@@ -50,7 +50,6 @@ extends XURLClassLoader
     /* All classes in the excluded list will be loaded
        by system class loader. 
     */
-    exclusions.add("java.");  // avoids javaiopatch.jar
     // let base do it instead
     exclusions.add("org.cougaar.core.security.crlextension");
     exclusions.add("javax.xml");
